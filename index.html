@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>Validar CNPJ Alfanumérico</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background: #f4f6f8;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+            }
+
+            .box {
+                background: #fff;
+                padding: 30px;
+                border-radius: 8px;
+                width: 100%;
+                max-width: 420px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, .1);
+            }
+
+            h1 {
+                font-size: 20px;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+
+            input {
+                width: 100%;
+                padding: 12px;
+                font-size: 16px;
+                text-transform: uppercase;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
+
+            button {
+                width: 100%;
+                margin-top: 15px;
+                padding: 12px;
+                font-size: 16px;
+                background: #003366;
+                color: #fff;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+            #resultado {
+                margin-top: 15px;
+                font-weight: bold;
+                text-align: center;
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <div class="box">
+            <h1>Validar CNPJ Alfanumérico</h1>
+
+            <input id="cnpj" type="text" placeholder="R8.YV0.TJS/0001-66" maxlength="18" oninput="aplicarMascaraCNPJ(this)">
+
+            <button onclick="validarFormulario()">Validar</button>
+            <div id="resultado"></div>
+
+
+            <hr />
+            <div>
+                <strong>Devem ser válidos:</strong><br />
+                12ABC34501DE35: VALIDO<br />
+                C1RY36DY000120: VALIDO<br />
+                98.335.506/0001-56: VALIDO<br />
+                RO074JUC000188: VALIDO<br />
+                EEXVC28G000120: VALIDO<br />
+                Q5INVTLF000172: VALIDO<br />
+                A6GG1NJV000162: VALIDO<br />
+                35.891.619/0001-18: VALIDO<br /><br />
+
+                <strong></strong>Devem ser inválidos:</strong><br />
+                AAAAAAA11111111: INVALIDO<br />
+                123456789ABCDE: INVALIDO<br />
+                X1Y2Z3W4V5U6X9: INVALIDO<br />
+                00000000000000: INVALIDO<br />
+                ABCDEFGHIJKLMN: INVALIDO<br />
+            </div>
+        </div>
+
+        <script>
+            class Cnpj {
+                static multiplicador1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+                static multiplicador2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+
+                static valido(value) {
+                    if (!value) return false;
+
+                    value = value.replace(/[.\/-]/g, '');
+
+                    let digitosIdenticos = true;
+                    let ultimoDigito = 0;
+                    let posicao = 0;
+                    let totalDigito1 = 0;
+                    let totalDigito2 = 0;
+
+                    const isValidInput = (c) => /[0-9A-Z]/.test(c);
+
+                    for (let c of value) {
+                        if (isValidInput(c)) {
+                            let digito = c.charCodeAt(0) - 48;
+                            if (posicao !== 0 && ultimoDigito !== digito) {
+                                digitosIdenticos = false;
+                            }
+
+                            ultimoDigito = digito;
+                            if (posicao < 12) {
+                                totalDigito1 += digito * this.multiplicador1[posicao];
+                                totalDigito2 += digito * this.multiplicador2[posicao];
+                            } else if (posicao === 12) {
+                                let dv1 = totalDigito1 % 11;
+                                dv1 = dv1 < 2 ? 0 : 11 - dv1;
+
+                                if (digito !== dv1) {
+                                    return false;
+                                }
+
+                                totalDigito2 += dv1 * this.multiplicador2[12];
+                            } else if (posicao === 13) {
+                                let dv2 = totalDigito2 % 11;
+                                dv2 = dv2 < 2 ? 0 : 11 - dv2;
+
+                                if (digito !== dv2) {
+                                    return false;
+                                }
+                            }
+                            posicao++;
+                        }
+                    }
+                    return posicao === 14 && !digitosIdenticos;
+                }
+            }
+
+            /* =======================
+            MÁSCARA AUTOMÁTICA
+            ======================= */
+
+            function aplicarMascaraCNPJ(input) {
+                let v = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+                v = v.replace(/^(.{2})(.{0,3})/, '$1.$2');
+                v = v.replace(/^(.{2})\.(.{3})(.{0,3})/, '$1.$2.$3');
+                v = v.replace(/^(.{2})\.(.{3})\.(.{3})(.{0,4})/, '$1.$2.$3/$4');
+                v = v.replace(/^(.{2})\.(.{3})\.(.{3})\/(.{4})(.{0,2})/, '$1.$2.$3/$4-$5');
+
+                input.value = v;
+            }
+
+            /* =======================
+            EVENTOS (DIGITAR + COLAR)
+            ======================= */
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const campo = document.getElementById('cnpj');
+
+                campo.addEventListener('input', () => aplicarMascaraCNPJ(campo));
+
+                campo.addEventListener('paste', () => {
+                    setTimeout(() => aplicarMascaraCNPJ(campo), 0);
+                });
+            });
+
+            /* =======================
+            BOTÃO VALIDAR
+            ======================= */
+
+            function validarFormulario() {
+                const campo = document.getElementById('cnpj');
+                const resultado = document.getElementById('resultado');
+
+                if (Cnpj.valido(campo.value)) {
+                    resultado.textContent = 'CNPJ ALFANUMÉRICO VÁLIDO';
+                    resultado.style.color = 'green';
+                } else {
+                    resultado.textContent = 'CNPJ ALFANUMÉRICO INVÁLIDO';
+                    resultado.style.color = 'red';
+                }
+            }
+
+            class Program {
+                static main() {
+                    const validos = [
+                        "12ABC34501DE35", "C1RY36DY000120", "98.335.506/0001-56", "RO074JUC000188",
+                        "EEXVC28G000120", "Q5INVTLF000172", "A6GG1NJV000162", "35.891.619/0001-18"
+                    ];
+
+                    const invalidos = [
+                        "AAAAAAA11111111", "123456789ABCDE", "X1Y2Z3W4V5U6X9", "00000000000000", "ABCDEFGHIJKLMN"
+                    ];
+
+                    console.log("Devem ser válidos:");
+                    validos.forEach(cnpj => {
+                        console.log(`${cnpj}: ${Cnpj.valido(cnpj) ? "VALIDO - CORRETO" : "INVALIDO - ERRADO"}`);
+                    });
+
+                    console.log("\nDevem ser inválidos:");
+                    invalidos.forEach(cnpj => {
+                        console.log(`${cnpj}: ${Cnpj.valido(cnpj) ? "VALIDO - ERRADO" : "INVALIDO - CORRETO"}`);
+                    });
+                }
+            }
+
+            Program.main();
+
+        </script>
+
+    </body>
+
+</html>
