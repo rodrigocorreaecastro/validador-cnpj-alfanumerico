@@ -29,5 +29,3 @@ O CNPJ alfanumérico é a nova forma de identificar empresas no Brasil, combinan
 <!-- ![GitHub code size](https://img.shields.io/github/languages/code-size/rodrigocorreaecastro/validador-cnpj-alfanumerico) -->
 
 <!-- ![GitHub issues closed](https://img.shields.io/github/issues-closed-raw/rodrigocorreaecastro/validador-cnpj-alfanumerico) -->
-
-![instagram](https://img.shields.io/badge/Instagram-@rodrigocorreaecastro-blue)
